@@ -19,6 +19,18 @@
 <div id="app-screen" class="container hidden">
   <h1>📒 Tracker Keuangan Kuliah</h1>
 
+  <div class="currency-row">
+    <label for="currency-select">Tampilkan dalam:</label>
+    <select id="currency-select">
+      <option value="IDR">Rp — Rupiah</option>
+      <option value="MYR">RM — Ringgit Malaysia</option>
+      <option value="USD">$ — US Dollar</option>
+      <option value="SGD">S$ — Dolar Singapura</option>
+      <option value="CNY">¥ — Yuan Tiongkok</option>
+    </select>
+    <span id="rate-info" class="muted"></span>
+  </div>
+
   <div class="summary">
     <div class="card income">
       <span>Pemasukan</span>
@@ -36,7 +48,7 @@
 
   <form id="entry-form">
     <input type="text" id="description" placeholder="Deskripsi (misal: Uang jajan, Beli buku)" required maxlength="100">
-    <input type="number" id="amount" placeholder="Jumlah (Rp)" required min="1" step="1">
+    <input type="number" id="amount" placeholder="Jumlah dalam Rupiah (Rp)" required min="1" step="1">
     <select id="category">
       <option value="makanan">Makanan</option>
       <option value="transportasi">Transportasi</option>

@@ -7,6 +7,8 @@ const form = document.getElementById('entry-form');
 const formError = document.getElementById('form-error');
 const list = document.getElementById('entry-list');
 const loading = document.getElementById('loading');
+const currencySelect = document.getElementById('currency-select');
+const rateInfo = document.getElementById('rate-info');
 
 // Token disimpan di sessionStorage saja (hilang saat tab ditutup) — bukan localStorage,
 // supaya tidak "nempel" permanen di browser device bersama.
@@ -14,8 +16,80 @@ function getToken() {
   return sessionStorage.getItem('app_secret');
 }
 
-function formatRupiah(num) {
-  return 'Rp' + Number(num).toLocaleString('id-ID');
+// Semua data selalu disimpan dalam IDR (Rupiah) di database.
+// Konversi ke mata uang lain hanya untuk TAMPILAN, pakai kurs live dari Frankfurter API
+// (data resmi European Central Bank, gratis, tanpa API key).
+const CURRENCY_META = {
+  IDR: { symbol: 'Rp', locale: 'id-ID' },
+  MYR: { symbol: 'RM', locale: 'ms-MY' },
+  USD: { symbol: '$', locale: 'en-US' },
+  SGD: { symbol: 'S$', locale: 'en-SG' },
+  CNY: { symbol: '¥', locale: 'zh-CN' },
+};
+
+let currentRate = 1; // rate IDR -> mata uang yang dipilih
+let currentCurrency = 'IDR';
+
+function getCachedRateKey(target) {
+  const today = new Date().toISOString().slice(0, 10); // cache per hari
+  return `fx_IDR_${target}_${today}`;
+}
+
+async function fetchRate(target) {
+  if (target === 'IDR') return 1;
+
+  const cacheKey = getCachedRateKey(target);
+  const cached = sessionStorage.getItem(cacheKey);
+  if (cached) return Number(cached);
+
+  try {
+    const res = await fetch(`https://api.frankfurter.dev/v1/latest?base=IDR&symbols=${target}`);
+    const data = await res.json();
+    const rate = data.rates[target];
+    if (rate) {
+      sessionStorage.setItem(cacheKey, rate);
+      return rate;
+    }
+  } catch (e) {
+    console.error('Gagal ambil kurs:', e);
+  }
+  return null; // gagal fetch
+}
+
+async function updateCurrency() {
+  const target = currencySelect.value;
+  currentCurrency = target;
+
+  if (target === 'IDR') {
+    currentRate = 1;
+    rateInfo.textContent = '';
+  } else {
+    rateInfo.textContent = 'Mengambil kurs...';
+    const rate = await fetchRate(target);
+    if (rate === null) {
+      rateInfo.textContent = 'Gagal ambil kurs hari ini, tetap tampil Rp.';
+      currentCurrency = 'IDR';
+      currentRate = 1;
+    } else {
+      currentRate = rate;
+      rateInfo.textContent = `1.000 Rp ≈ ${(rate * 1000).toFixed(2)} ${target} (kurs hari ini)`;
+    }
+  }
+  // Re-render entri yang sudah tampil dengan currency baru
+  if (window.__lastEntries) renderEntries(window.__lastEntries);
+}
+
+currencySelect.addEventListener('change', updateCurrency);
+
+function formatMoney(amountInIdr) {
+  const converted = amountInIdr * currentRate;
+  const meta = CURRENCY_META[currentCurrency];
+  // Rupiah dibulatkan tanpa desimal, mata uang lain pakai 2 desimal
+  const decimals = currentCurrency === 'IDR' ? 0 : 2;
+  return meta.symbol + converted.toLocaleString(meta.locale, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  });
 }
 
 async function apiFetch(url, options = {}) {
@@ -79,6 +153,7 @@ async function loadEntries() {
 }
 
 function renderEntries(entries) {
+  window.__lastEntries = entries; // simpan buat re-render kalau currency diganti
   list.innerHTML = '';
   let income = 0, expense = 0;
 
@@ -94,7 +169,7 @@ function renderEntries(entries) {
       </div>
       <div style="display:flex; align-items:center; gap:8px;">
         <span class="entry-amount ${entry.type === 'income' ? 'income-text' : 'expense-text'}">
-          ${entry.type === 'income' ? '+' : '-'}${formatRupiah(entry.amount)}
+          ${entry.type === 'income' ? '+' : '-'}${formatMoney(entry.amount)}
         </span>
         <button class="delete-btn" data-id="${entry.id}">✕</button>
       </div>
@@ -102,9 +177,9 @@ function renderEntries(entries) {
     list.appendChild(li);
   });
 
-  document.getElementById('total-income').textContent = formatRupiah(income);
-  document.getElementById('total-expense').textContent = formatRupiah(expense);
-  document.getElementById('total-balance').textContent = formatRupiah(income - expense);
+  document.getElementById('total-income').textContent = formatMoney(income);
+  document.getElementById('total-expense').textContent = formatMoney(expense);
+  document.getElementById('total-balance').textContent = formatMoney(income - expense);
 
   document.querySelectorAll('.delete-btn').forEach(btn => {
     btn.addEventListener('click', () => deleteEntry(btn.dataset.id));
