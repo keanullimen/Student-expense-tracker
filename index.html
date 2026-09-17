@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Expense Tracker</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="auth-screen" class="container">
+  <h1>🔐 Masuk</h1>
+  <p class="muted">Masukkan password yang sudah kamu set di environment variable <code>APP_SECRET</code>.</p>
+  <input type="password" id="secret-input" placeholder="Password">
+  <button id="login-btn">Masuk</button>
+  <p id="auth-error" class="error"></p>
+</div>
+
+<div id="app-screen" class="container hidden">
+  <h1>📒 Tracker Keuangan Kuliah</h1>
+
+  <div class="summary">
+    <div class="card income">
+      <span>Pemasukan</span>
+      <strong id="total-income">Rp0</strong>
+    </div>
+    <div class="card expense">
+      <span>Pengeluaran</span>
+      <strong id="total-expense">Rp0</strong>
+    </div>
+    <div class="card balance">
+      <span>Saldo</span>
+      <strong id="total-balance">Rp0</strong>
+    </div>
+  </div>
+
+  <form id="entry-form">
+    <input type="text" id="description" placeholder="Deskripsi (misal: Uang jajan, Beli buku)" required maxlength="100">
+    <input type="number" id="amount" placeholder="Jumlah (Rp)" required min="1" step="1">
+    <select id="category">
+      <option value="makanan">Makanan</option>
+      <option value="transportasi">Transportasi</option>
+      <option value="buku/kuliah">Buku/Kuliah</option>
+      <option value="hiburan">Hiburan</option>
+      <option value="lainnya">Lainnya</option>
+    </select>
+    <select id="type">
+      <option value="expense">Pengeluaran</option>
+      <option value="income">Pemasukan</option>
+    </select>
+    <button type="submit">Tambah</button>
+  </form>
+
+  <p id="form-error" class="error"></p>
+  <p id="loading" class="muted hidden">Memuat...</p>
+
+  <ul id="entry-list"></ul>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
