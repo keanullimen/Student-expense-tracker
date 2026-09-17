@@ -3,72 +3,101 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Student Expense Tracker</title>
+<title>Tracker Keuangan Kuliah</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div id="auth-screen" class="container">
-  <h1>🔐 Masuk</h1>
-  <p class="muted">Masukkan password yang sudah kamu set di environment variable <code>APP_SECRET</code>.</p>
-  <input type="password" id="secret-input" placeholder="Password">
-  <button id="login-btn">Masuk</button>
-  <p id="auth-error" class="error"></p>
+<div id="auth-screen" class="auth-wrap">
+  <div class="auth-card">
+    <span class="auth-mark">۞</span>
+    <h1>Masuk</h1>
+    <p class="muted">Masukkan password yang sudah kamu set di <code>APP_SECRET</code>.</p>
+    <input type="password" id="secret-input" placeholder="Password">
+    <button id="login-btn">Masuk</button>
+    <p id="auth-error" class="error"></p>
+  </div>
 </div>
 
-<div id="app-screen" class="container hidden">
-  <h1>📒 Tracker Keuangan Kuliah</h1>
+<div id="app-screen" class="page hidden">
 
-  <div class="currency-row">
-    <label for="currency-select">Tampilkan dalam:</label>
-    <select id="currency-select">
-      <option value="IDR">Rp — Rupiah</option>
-      <option value="MYR">RM — Ringgit Malaysia</option>
-      <option value="USD">$ — US Dollar</option>
-      <option value="SGD">S$ — Dolar Singapura</option>
-      <option value="CNY">¥ — Yuan Tiongkok</option>
-    </select>
-    <span id="rate-info" class="muted"></span>
-  </div>
-
-  <div class="summary">
-    <div class="card income">
-      <span>Pemasukan</span>
-      <strong id="total-income">Rp0</strong>
+  <header class="topbar">
+    <div>
+      <h1>Keuangan Kuliah</h1>
+      <p class="muted">Pantau pemasukan &amp; pengeluaran semester ini</p>
     </div>
-    <div class="card expense">
-      <span>Pengeluaran</span>
-      <strong id="total-expense">Rp0</strong>
+    <div class="currency-row">
+      <select id="currency-select">
+        <option value="IDR">Rp Rupiah</option>
+        <option value="MYR">RM Ringgit</option>
+        <option value="USD">$ USD</option>
+        <option value="SGD">S$ SGD</option>
+        <option value="CNY">¥ Yuan</option>
+      </select>
+      <span id="rate-info" class="muted small"></span>
     </div>
-    <div class="card balance">
-      <span>Saldo</span>
-      <strong id="total-balance">Rp0</strong>
+  </header>
+
+  <p id="loading" class="muted hidden">Memuat data...</p>
+
+  <section class="bento">
+
+    <div class="cell cell-balance">
+      <span class="cell-label">Saldo saat ini</span>
+      <strong id="total-balance" class="cell-figure">Rp0</strong>
+      <div class="mini-row">
+        <span class="mini income-text">↑ <span id="total-income">Rp0</span></span>
+        <span class="mini expense-text">↓ <span id="total-expense">Rp0</span></span>
+      </div>
     </div>
-  </div>
 
-  <form id="entry-form">
-    <input type="text" id="description" placeholder="Deskripsi (misal: Uang jajan, Beli buku)" required maxlength="100">
-    <input type="number" id="amount" placeholder="Jumlah dalam Rupiah (Rp)" required min="1" step="1">
-    <select id="category">
-      <option value="makanan">Makanan</option>
-      <option value="transportasi">Transportasi</option>
-      <option value="buku/kuliah">Buku/Kuliah</option>
-      <option value="hiburan">Hiburan</option>
-      <option value="lainnya">Lainnya</option>
-    </select>
-    <select id="type">
-      <option value="expense">Pengeluaran</option>
-      <option value="income">Pemasukan</option>
-    </select>
-    <button type="submit">Tambah</button>
-  </form>
+    <div class="cell cell-form">
+      <span class="cell-label">Catat transaksi</span>
+      <form id="entry-form">
+        <input type="text" id="description" placeholder="Deskripsi" required maxlength="100">
+        <div class="form-row">
+          <input type="number" id="amount" placeholder="Jumlah (Rp)" required min="1" step="1">
+          <select id="type">
+            <option value="expense">Keluar</option>
+            <option value="income">Masuk</option>
+          </select>
+        </div>
+        <select id="category">
+          <option value="makanan">Makanan</option>
+          <option value="transportasi">Transportasi</option>
+          <option value="buku/kuliah">Buku/Kuliah</option>
+          <option value="hiburan">Hiburan</option>
+          <option value="lainnya">Lainnya</option>
+        </select>
+        <button type="submit">Tambah</button>
+        <p id="form-error" class="error"></p>
+      </form>
+    </div>
 
-  <p id="form-error" class="error"></p>
-  <p id="loading" class="muted hidden">Memuat...</p>
+    <div class="cell cell-trend">
+      <span class="cell-label">Tren saldo</span>
+      <canvas id="trend-chart"></canvas>
+    </div>
 
-  <ul id="entry-list"></ul>
+    <div class="cell cell-category">
+      <span class="cell-label">Pengeluaran per kategori</span>
+      <canvas id="category-chart"></canvas>
+      <p id="category-empty" class="muted small hidden">Belum ada pengeluaran.</p>
+    </div>
+
+    <div class="cell cell-list">
+      <span class="cell-label">Riwayat transaksi</span>
+      <ul id="entry-list"></ul>
+      <p id="list-empty" class="muted small hidden">Belum ada transaksi.</p>
+    </div>
+
+  </section>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
