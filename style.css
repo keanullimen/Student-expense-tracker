@@ -161,12 +161,12 @@ button:hover {
 
 .bento {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1.4fr 1fr;
   grid-template-areas:
-    "balance balance form"
-    "trend   trend   form"
-    "cat     cat     list"
-    "list    list    list";
+    "balance form"
+    "trend   form"
+    "cat     form"
+    "list    list";
   gap: 14px;
 }
 
